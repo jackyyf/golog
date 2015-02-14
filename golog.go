@@ -3,6 +3,7 @@ package golog
 import (
 	"fmt"
 	"os"
+	"strings"
 	"sync"
 	"time"
 )
@@ -15,6 +16,7 @@ const (
 	WARN
 	ERROR
 	FATAL
+	INVALID Level = -1
 )
 
 var logLevel = INFO
@@ -218,4 +220,14 @@ func Rotate() (err error) {
 		}
 	}
 	return nil
+}
+
+func ToLevel(str string) (level Level) {
+	str = strings.ToUpper(str)
+	for l, s := range level_string {
+		if str == s {
+			return Level(l)
+		}
+	}
+	return Level(-1)
 }
