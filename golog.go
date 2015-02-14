@@ -64,12 +64,17 @@ var queue = make(chan *Message, 32)
 var quit_signal = make(chan byte, 1)
 
 var logger = NewFd(os.Stderr)
+var termsig = make(chan byte, 1)
 var prefix = ""
 var lock sync.Mutex
+var has_daemon bool
 
 func daemon() {
+	has_daemon = true
 	for {
 		select {
+		case <-termsig:
+			return
 		case msg := <-queue:
 			lock.Lock()
 			if msg.level >= logLevel {
@@ -107,6 +112,18 @@ func OpenFd(fd *os.File) {
 
 func init() {
 	go daemon()
+}
+
+func Start() {
+	if !has_daemon {
+		go daemon()
+	}
+}
+
+func Stop() {
+	if has_daemon {
+		termsig <- '\x00'
+	}
 }
 
 func Fatal(msg string) {
