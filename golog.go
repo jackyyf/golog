@@ -124,6 +124,7 @@ func Stop() {
 	if has_daemon {
 		termsig <- '\x00'
 	}
+	has_daemon = false
 }
 
 func Fatal(msg string) {
