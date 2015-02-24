@@ -3,6 +3,7 @@ package golog
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 	"runtime"
 	"strings"
 	"sync"
@@ -64,6 +65,11 @@ func NewFile(f string) (fl *FileLog, err error) {
 	}
 	fl = NewFd(w)
 	fl.path = f
+	return
+}
+
+func filename(path string) (file string) {
+	_, file = filepath.Split(path)
 	return
 }
 
@@ -141,7 +147,7 @@ func Fatal(msg string) {
 	}
 	queue <- &Message{
 		caller: Caller{
-			filename: file,
+			filename: filename(file),
 			line:     line,
 		},
 		message: msg,
@@ -160,7 +166,7 @@ func Fatalf(format string, a ...interface{}) {
 	}
 	queue <- &Message{
 		caller: Caller{
-			filename: file,
+			filename: filename(file),
 			line:     line,
 		},
 		message: fmt.Sprintf(format, a...),
@@ -182,7 +188,7 @@ func Error(msg string) {
 	}
 	queue <- &Message{
 		caller: Caller{
-			filename: file,
+			filename: filename(file),
 			line:     line,
 		},
 		message: msg,
@@ -201,7 +207,7 @@ func Errorf(format string, a ...interface{}) {
 	}
 	queue <- &Message{
 		caller: Caller{
-			filename: file,
+			filename: filename(file),
 			line:     line,
 		},
 		message: fmt.Sprintf(format, a...),
@@ -220,7 +226,7 @@ func Warn(msg string) {
 	}
 	queue <- &Message{
 		caller: Caller{
-			filename: file,
+			filename: filename(file),
 			line:     line,
 		},
 		message: msg,
@@ -239,7 +245,7 @@ func Warnf(format string, a ...interface{}) {
 	}
 	queue <- &Message{
 		caller: Caller{
-			filename: file,
+			filename: filename(file),
 			line:     line,
 		},
 		message: fmt.Sprintf(format, a...),
@@ -258,7 +264,7 @@ func Info(msg string) {
 	}
 	queue <- &Message{
 		caller: Caller{
-			filename: file,
+			filename: filename(file),
 			line:     line,
 		},
 		message: msg,
@@ -277,7 +283,7 @@ func Infof(format string, a ...interface{}) {
 	}
 	queue <- &Message{
 		caller: Caller{
-			filename: file,
+			filename: filename(file),
 			line:     line,
 		},
 		message: fmt.Sprintf(format, a...),
@@ -296,7 +302,7 @@ func Debug(msg string) {
 	}
 	queue <- &Message{
 		caller: Caller{
-			filename: file,
+			filename: filename(file),
 			line:     line,
 		},
 		message: msg,
@@ -315,7 +321,7 @@ func Debugf(format string, a ...interface{}) {
 	}
 	queue <- &Message{
 		caller: Caller{
-			filename: file,
+			filename: filename(file),
 			line:     line,
 		},
 		message: fmt.Sprintf(format, a...),
