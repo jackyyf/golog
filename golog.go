@@ -3,6 +3,7 @@ package golog
 import (
 	"fmt"
 	"os"
+	"runtime"
 	"strings"
 	"sync"
 	"time"
@@ -34,7 +35,13 @@ type FileLog struct {
 	path   string
 }
 
+type Caller struct {
+	filename string
+	line     int
+}
+
 type Message struct {
+	caller  Caller
 	message string
 	level   Level
 }
@@ -77,9 +84,8 @@ func daemon() {
 			return
 		case msg := <-queue:
 			lock.Lock()
-			if msg.level >= logLevel {
-				fmt.Fprintf(logger.writer, "[%5s @ %s] %s%s\n", level_string[msg.level], time.Now().Format("Jan 2 15:04:05.000"), prefix, msg.message)
-			}
+			fmt.Fprintf(logger.writer, "[%5s @ %s][%s:%d] %s%s\n", level_string[msg.level],
+				time.Now().Format("Jan 2 15:04:05.000"), msg.caller.filename, msg.caller.line, prefix, msg.message)
 			if msg.level == FATAL {
 				quit_signal <- '\x00'
 			}
@@ -128,7 +134,16 @@ func Stop() {
 }
 
 func Fatal(msg string) {
+	_, file, line, ok := runtime.Caller(1)
+	if !ok {
+		file = "<unknown>"
+		line = 0
+	}
 	queue <- &Message{
+		caller: Caller{
+			filename: file,
+			line:     line,
+		},
 		message: msg,
 		level:   FATAL,
 	}
@@ -138,14 +153,38 @@ func Fatal(msg string) {
 }
 
 func Fatalf(format string, a ...interface{}) {
-	Fatal(fmt.Sprintf(format, a...))
+	_, file, line, ok := runtime.Caller(1)
+	if !ok {
+		file = "<unknown>"
+		line = 0
+	}
+	queue <- &Message{
+		caller: Caller{
+			filename: file,
+			line:     line,
+		},
+		message: fmt.Sprintf(format, a...),
+		level:   FATAL,
+	}
+	/* Wait for flushing logs. */
+	<-quit_signal
+	os.Exit(1)
 }
 
 func Error(msg string) {
 	if logLevel > ERROR {
 		return
 	}
+	_, file, line, ok := runtime.Caller(1)
+	if !ok {
+		file = "<unknown>"
+		line = 0
+	}
 	queue <- &Message{
+		caller: Caller{
+			filename: file,
+			line:     line,
+		},
 		message: msg,
 		level:   ERROR,
 	}
@@ -155,7 +194,16 @@ func Errorf(format string, a ...interface{}) {
 	if logLevel > ERROR {
 		return
 	}
+	_, file, line, ok := runtime.Caller(1)
+	if !ok {
+		file = "<unknown>"
+		line = 0
+	}
 	queue <- &Message{
+		caller: Caller{
+			filename: file,
+			line:     line,
+		},
 		message: fmt.Sprintf(format, a...),
 		level:   ERROR,
 	}
@@ -165,7 +213,16 @@ func Warn(msg string) {
 	if logLevel > WARN {
 		return
 	}
+	_, file, line, ok := runtime.Caller(1)
+	if !ok {
+		file = "<unknown>"
+		line = 0
+	}
 	queue <- &Message{
+		caller: Caller{
+			filename: file,
+			line:     line,
+		},
 		message: msg,
 		level:   WARN,
 	}
@@ -175,7 +232,16 @@ func Warnf(format string, a ...interface{}) {
 	if logLevel > WARN {
 		return
 	}
+	_, file, line, ok := runtime.Caller(1)
+	if !ok {
+		file = "<unknown>"
+		line = 0
+	}
 	queue <- &Message{
+		caller: Caller{
+			filename: file,
+			line:     line,
+		},
 		message: fmt.Sprintf(format, a...),
 		level:   WARN,
 	}
@@ -185,7 +251,16 @@ func Info(msg string) {
 	if logLevel > INFO {
 		return
 	}
+	_, file, line, ok := runtime.Caller(1)
+	if !ok {
+		file = "<unknown>"
+		line = 0
+	}
 	queue <- &Message{
+		caller: Caller{
+			filename: file,
+			line:     line,
+		},
 		message: msg,
 		level:   INFO,
 	}
@@ -195,7 +270,16 @@ func Infof(format string, a ...interface{}) {
 	if logLevel > INFO {
 		return
 	}
+	_, file, line, ok := runtime.Caller(1)
+	if !ok {
+		file = "<unknown>"
+		line = 0
+	}
 	queue <- &Message{
+		caller: Caller{
+			filename: file,
+			line:     line,
+		},
 		message: fmt.Sprintf(format, a...),
 		level:   INFO,
 	}
@@ -205,7 +289,16 @@ func Debug(msg string) {
 	if logLevel > DEBUG {
 		return
 	}
+	_, file, line, ok := runtime.Caller(1)
+	if !ok {
+		file = "<unknown>"
+		line = 0
+	}
 	queue <- &Message{
+		caller: Caller{
+			filename: file,
+			line:     line,
+		},
 		message: msg,
 		level:   DEBUG,
 	}
@@ -215,7 +308,16 @@ func Debugf(format string, a ...interface{}) {
 	if logLevel > DEBUG {
 		return
 	}
+	_, file, line, ok := runtime.Caller(1)
+	if !ok {
+		file = "<unknown>"
+		line = 0
+	}
 	queue <- &Message{
+		caller: Caller{
+			filename: file,
+			line:     line,
+		},
 		message: fmt.Sprintf(format, a...),
 		level:   DEBUG,
 	}
